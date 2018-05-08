@@ -4,15 +4,12 @@ import (
 	"testing"
 )
 
-func testSharedMapGet(t *testing.T, sm SharedMap, key, val interface{}) {
-	value, ok := sm.Get(key)
+func testSharedMapGet(t *testing.T, sm SharedMap, k, v interface{}, exist bool) {
+	value, ok := sm.Get(k)
 
-	if ok {
-		if value != val {
-			t.Errorf("%v != %v", value, val)
-		}
-	} else {
-		t.Errorf("!ok(%t)", ok)
+	if value != v || ok != exist {
+		err := "value(%v) != v(%v)|| ok(%t) != exist(%t)"
+		t.Errorf(err, value, v, ok, exist)
 	}
 }
 
@@ -21,15 +18,15 @@ func TestSharedMapSet(t *testing.T) {
 	sm.Set("foo", 100)
 	sm.Set(1, "100")
 
-	testSharedMapGet(t, sm, "foo", 100)
-	testSharedMapGet(t, sm, 1, "100")
+	testSharedMapGet(t, sm, "foo", 100, true)
+	testSharedMapGet(t, sm, 1, "100", true)
 }
 
 func TestSharedMapGet(t *testing.T) {
 	sm := New()
 	sm.Set("foo", "bar")
 
-	testSharedMapGet(t, sm, "foo", "bar")
+	testSharedMapGet(t, sm, "foo", "bar", true)
 }
 
 func TestSharedMapRemove(t *testing.T) {
@@ -38,10 +35,7 @@ func TestSharedMapRemove(t *testing.T) {
 
 	sm.Remove("foo")
 
-	value, ok := sm.Get("foo")
-	if value != nil || ok {
-		t.Errorf("value(%#v), ok(%t)", value, ok)
-	}
+	testSharedMapGet(t, sm, "foo", nil, false)
 }
 
 func TestSharedMapCount(t *testing.T) {
