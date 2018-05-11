@@ -4,12 +4,18 @@ import (
 	"testing"
 )
 
-func testSharedMapGet(t *testing.T, sm SharedMap, k, v interface{}, exist bool) {
-	value, ok := sm.Get(k)
+type Expected struct {
+	key   interface{}
+	value interface{}
+	exist bool
+}
 
-	if value != v || ok != exist {
-		err := "value(%v) != v(%v)|| ok(%t) != exist(%t)"
-		t.Errorf(err, value, v, ok, exist)
+func testSharedMapGet(t *testing.T, sm SharedMap, expected Expected) {
+	actual, ok := sm.Get(expected.key)
+
+	if actual != expected.value || ok != expected.exist {
+		err := "%v != %v|| ok(%t) != exist(%t)"
+		t.Errorf(err, actual, expected.value, ok, expected.exist)
 	}
 }
 
@@ -18,15 +24,19 @@ func TestSharedMapSet(t *testing.T) {
 	sm.Set("foo", 100)
 	sm.Set(1, "100")
 
-	testSharedMapGet(t, sm, "foo", 100, true)
-	testSharedMapGet(t, sm, 1, "100", true)
+	expected := Expected{"foo", 100, true}
+	testSharedMapGet(t, sm, expected)
+
+	expected = Expected{1, "100", true}
+	testSharedMapGet(t, sm, expected)
 }
 
 func TestSharedMapGet(t *testing.T) {
 	sm := New()
 	sm.Set("foo", "bar")
 
-	testSharedMapGet(t, sm, "foo", "bar", true)
+	expected := Expected{"foo", "bar", true}
+	testSharedMapGet(t, sm, expected)
 }
 
 func TestSharedMapRemove(t *testing.T) {
@@ -35,7 +45,8 @@ func TestSharedMapRemove(t *testing.T) {
 
 	sm.Remove("foo")
 
-	testSharedMapGet(t, sm, "foo", nil, false)
+	expected := Expected{"foo", nil, false}
+	testSharedMapGet(t, sm, expected)
 }
 
 func TestSharedMapCount(t *testing.T) {
@@ -43,7 +54,10 @@ func TestSharedMapCount(t *testing.T) {
 	sm.Set("foo1", "bar1")
 	sm.Set("foo2", "bar2")
 
-	if 2 != sm.Count() {
-		t.Errorf("%d != %d", 2, sm.Count())
+	actual := sm.Count()
+	expected := 2
+
+	if actual != expected {
+		t.Errorf("%d != %d", actual, expected)
 	}
 }
