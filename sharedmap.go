@@ -24,14 +24,14 @@ type command struct {
 // Set sets value in SharedMap.m
 // to associated with the given key.
 // It update if the key already has been registered.
-func (sm SharedMap) Set(k interface{}, v interface{}) {
+func (sm *SharedMap) Set(k interface{}, v interface{}) {
 	sm.c <- command{action: set, key: k, value: v}
 }
 
 // Get returns the first value associated with the given key
 // and whether or not it exists.
 // It returns nil if the key has not been registered.
-func (sm SharedMap) Get(k interface{}) (value interface{}, exist bool) {
+func (sm *SharedMap) Get(k interface{}) (value interface{}, exist bool) {
 	callback := make(chan interface{})
 	sm.c <- command{action: get, key: k, result: callback}
 	result := (<-callback).([2]interface{})
@@ -42,18 +42,18 @@ func (sm SharedMap) Get(k interface{}) (value interface{}, exist bool) {
 
 // Remove removes value from SharedMap.m
 // to associated with the given key.
-func (sm SharedMap) Remove(k interface{}) {
+func (sm *SharedMap) Remove(k interface{}) {
 	sm.c <- command{action: remove, key: k}
 }
 
 // Count returns the number of SharedMap.m length.
-func (sm SharedMap) Count() int {
+func (sm *SharedMap) Count() int {
 	callback := make(chan interface{})
 	sm.c <- command{action: count, result: callback}
 	return (<-callback).(int)
 }
 
-func (sm SharedMap) run() {
+func (sm *SharedMap) run() {
 	for cmd := range sm.c {
 		switch cmd.action {
 		case set:
@@ -70,8 +70,8 @@ func (sm SharedMap) run() {
 }
 
 // New is Create a new SharedMap and returns.
-func New() SharedMap {
-	sm := SharedMap{
+func New() *SharedMap {
+	sm := &SharedMap{
 		m: make(map[interface{}]interface{}),
 		c: make(chan command),
 	}
